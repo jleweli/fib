@@ -1,0 +1,24 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t julianleweling/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true julianleweling/react-test npm test
+
+after_success:
+  - docker build -t julianleweling/fib-client ./client
+  - docker build -t julianleweling/fib-nginx ./nginx
+  - docker build -t julianleweling/fib-server ./server
+  - docker build -t julianleweling/fib-worker ./worker
+  
+  # create acces token on docker hub instead of main password!
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push julianleweling/fib-client
+  - docker push julianleweling/fib-nginx
+  - docker push julianleweling/fib-server
+  - docker push julianleweling/fib-worker
